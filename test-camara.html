@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Cámara</title>
+<style>
+  body { font-family: sans-serif; padding: 30px; background: #111; color: #fff; }
+  h2 { margin-bottom: 24px; }
+  .btn { display: block; width: 100%; padding: 20px; margin-bottom: 16px; font-size: 18px; font-weight: bold; border-radius: 12px; border: none; cursor: pointer; }
+  .btn1 { background: #c8f060; color: #000; }
+  .btn2 { background: #60f0a8; color: #000; }
+  .btn3 { background: #6090f0; color: #fff; }
+  label.btn { display: block; text-align: center; }
+  label.btn input { display: none; }
+  img { width: 100%; border-radius: 10px; margin-top: 20px; display: none; }
+  #log { margin-top: 20px; background: #222; padding: 14px; border-radius: 10px; font-size: 13px; color: #aaa; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h2>🧪 Test de Cámara</h2>
+
+<p style="color:#aaa;margin-bottom:20px;font-size:14px;">Tocá cada botón y decí cuál funciona:</p>
+
+<!-- TEST 1: label con input adentro, con capture -->
+<label class="btn btn1">
+  📷 TEST 1 — Cámara (capture)
+  <input type="file" accept="image/*" capture="environment" onchange="onImg(this,'TEST1 capture=environment')">
+</label>
+
+<!-- TEST 2: label con input adentro, SIN capture -->
+<label class="btn btn2">
+  🖼 TEST 2 — Archivo/Galería (sin capture)
+  <input type="file" accept="image/*" onchange="onImg(this,'TEST2 sin capture')">
+</label>
+
+<!-- TEST 3: input visible directo -->
+<p style="color:#aaa;font-size:13px;margin-bottom:8px;">TEST 3 — Input visible directo:</p>
+<input class="btn btn3" type="file" accept="image/*" onchange="onImg(this,'TEST3 input visible')">
+
+<img id="preview">
+<div id="log">Esperando tap…</div>
+
+<script>
+function onImg(input, label) {
+  log('✅ ' + label + ' — archivo seleccionado: ' + (input.files[0]?.name || 'ninguno'));
+  if (input.files[0]) {
+    const r = new FileReader();
+    r.onload = e => { const img = document.getElementById('preview'); img.src = e.target.result; img.style.display='block'; };
+    r.readAsDataURL(input.files[0]);
+  }
+}
+function log(msg) {
+  document.getElementById('log').textContent += '\n' + msg;
+}
+log('Página cargada — ' + navigator.userAgent);
+</script>
+</body>
+</html>

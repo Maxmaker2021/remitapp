@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>RemitApp · Campo Simple</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --accent: #c8f060;
+    --accent2: #60f0a8;
+    --danger: #f06060;
+    --text: #f0f0f0;
+    --text2: #888;
+    --text3: #555;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --font-display: 'Syne', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-display);
+    min-height: 100dvh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; flex-direction: column; min-height: 100dvh; animation: fadeIn .25s ease; }
+  .screen.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 20px 0;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topbar-logo { font-size: 13px; font-weight: 700; letter-spacing: .12em; color: var(--accent); text-transform: uppercase; }
+  .topbar-title { font-size: 15px; font-weight: 600; color: var(--text2); }
+  .icon-btn {
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--surface2); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text); font-size: 18px; transition: border-color .2s, background .2s;
+  }
+  .icon-btn:active { background: var(--border); }
+
+  /* ── HERO / HOME ── */
+  .home-hero {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px 24px; gap: 32px;
+  }
+  .hero-badge {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 100px; padding: 6px 14px;
+    font-size: 11px; font-weight: 600; letter-spacing: .1em;
+    color: var(--text2); text-transform: uppercase;
+  }
+  .hero-title {
+    font-size: clamp(36px, 10vw, 52px); font-weight: 800; line-height: 1;
+    text-align: center; letter-spacing: -.02em;
+  }
+  .hero-title span { color: var(--accent); }
+  .hero-sub { font-size: 14px; color: var(--text2); text-align: center; line-height: 1.6; max-width: 280px; }
+
+  .capture-btn {
+    width: 100%; max-width: 320px;
+    background: var(--accent); color: #0a0a0a;
+    border: none; border-radius: var(--radius);
+    padding: 20px 24px; font-family: var(--font-display);
+    font-size: 16px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    transition: transform .15s, box-shadow .15s;
+    box-shadow: 0 0 0 0 rgba(200,240,96,.3);
+  }
+  .capture-btn:active { transform: scale(.97); }
+  .capture-btn svg { width: 22px; height: 22px; }
+
+  .secondary-btn {
+    width: 100%; max-width: 320px;
+    background: transparent; color: var(--text2);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 24px; font-family: var(--font-display);
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: border-color .2s, color .2s;
+  }
+  .secondary-btn:active { border-color: var(--text2); color: var(--text); }
+
+  .stats-row {
+    display: flex; gap: 12px; width: 100%; max-width: 320px;
+  }
+  .stat-card {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px;
+  }
+  .stat-num { font-size: 24px; font-weight: 800; color: var(--accent); }
+  .stat-label { font-size: 11px; color: var(--text3); font-weight: 600; letter-spacing: .05em; margin-top: 2px; }
+
+  /* ── PREVIEW ── */
+  #preview-container {
+    flex: 1; position: relative; background: #000;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; min-height: 300px;
+  }
+  #preview-img {
+    max-width: 100%; max-height: 100%; object-fit: contain;
+    display: none;
+  }
+  .preview-placeholder {
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    color: var(--text3); font-size: 13px;
+  }
+  .preview-placeholder svg { opacity: .3; }
+
+  .preview-actions {
+    padding: 20px; display: flex; flex-direction: column; gap: 12px;
+    background: var(--bg);
+  }
+
+  /* ── PROCESSING ── */
+  .processing-screen {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 24px; padding: 40px 24px;
+  }
+  .spinner-ring {
+    width: 72px; height: 72px; border-radius: 50%;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .processing-title { font-size: 22px; font-weight: 700; text-align: center; }
+  .processing-sub { font-size: 13px; color: var(--text2); text-align: center; line-height: 1.6; }
+  .processing-steps { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 300px; margin-top: 8px; }
+  .step-item {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 12px 14px;
+    font-size: 13px; color: var(--text2); transition: all .4s;
+  }
+  .step-item.done { border-color: var(--accent); color: var(--text); }
+  .step-item.done .step-dot { background: var(--accent); }
+  .step-item.active { border-color: var(--accent2); color: var(--text); }
+  .step-item.active .step-dot { background: var(--accent2); animation: pulse 1s infinite; }
+  .step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+  /* ── FORM / REVIEW ── */
+  .form-scroll { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+
+  .form-section-title {
+    font-size: 10px; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--text3); margin-bottom: 4px;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 12px; color: var(--text2); font-family: var(--font-mono); }
+  .form-input {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 12px 14px;
+    color: var(--text); font-family: var(--font-mono); font-size: 14px;
+    width: 100%; outline: none; transition: border-color .2s;
+    -webkit-appearance: none;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  .form-input.highlight { border-color: rgba(200,240,96,.4); background: rgba(200,240,96,.04); }
+
+  .form-row { display: flex; gap: 10px; }
+  .form-row .form-group { flex: 1; }
+
+  .items-table {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); overflow: hidden;
+  }
+  .items-header {
+    display: grid; grid-template-columns: 3fr 1fr 1fr;
+    padding: 10px 14px; background: var(--surface2);
+    font-size: 10px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--text3);
+  }
+  .item-row {
+    display: grid; grid-template-columns: 3fr 1fr 1fr;
+    padding: 10px 14px; border-top: 1px solid var(--border);
+    font-size: 13px; font-family: var(--font-mono);
+  }
+  .item-row span { color: var(--text2); }
+  .item-row span:first-child { color: var(--text); }
+
+  .confidence-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-family: var(--font-mono); font-weight: 500;
+    padding: 3px 8px; border-radius: 100px;
+  }
+  .confidence-tag.high { background: rgba(200,240,96,.12); color: var(--accent); }
+  .confidence-tag.med { background: rgba(240,200,60,.12); color: #f0c83c; }
+  .confidence-tag.low { background: rgba(240,96,96,.12); color: var(--danger); }
+
+  .form-actions {
+    padding: 16px 20px; display: flex; flex-direction: column; gap: 10px;
+    border-top: 1px solid var(--border); background: var(--bg);
+  }
+
+  .btn-primary {
+    background: var(--accent); color: #0a0a0a;
+    border: none; border-radius: var(--radius);
+    padding: 16px; font-family: var(--font-display);
+    font-size: 15px; font-weight: 700; cursor: pointer; width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform .15s;
+  }
+  .btn-primary:active { transform: scale(.98); }
+
+  .btn-secondary {
+    background: transparent; color: var(--text2);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px; font-family: var(--font-display);
+    font-size: 14px; font-weight: 600; cursor: pointer; width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-secondary:active { background: var(--surface2); }
+
+  /* ── LIST SCREEN ── */
+  .list-header { padding: 20px 20px 12px; }
+  .list-title { font-size: 28px; font-weight: 800; letter-spacing: -.02em; }
+  .search-bar {
+    margin: 0 20px 16px; display: flex; align-items: center; gap: 10px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 10px 14px;
+  }
+  .search-bar input {
+    flex: 1; background: none; border: none; outline: none;
+    color: var(--text); font-family: var(--font-display); font-size: 14px;
+  }
+  .search-bar input::placeholder { color: var(--text3); }
+  .search-icon { color: var(--text3); font-size: 16px; }
+
+  .remito-list { flex: 1; overflow-y: auto; padding: 0 20px 20px; display: flex; flex-direction: column; gap: 10px; }
+  .remito-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px;
+    cursor: pointer; transition: border-color .2s, background .2s;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .remito-card:active { background: var(--surface2); border-color: var(--text3); }
+  .remito-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .remito-num { font-size: 16px; font-weight: 700; font-family: var(--font-mono); }
+  .remito-date { font-size: 11px; color: var(--text3); font-family: var(--font-mono); }
+  .remito-empresa { font-size: 13px; color: var(--text2); }
+  .remito-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag {
+    font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 100px;
+  }
+  .tag-exported { background: rgba(200,240,96,.1); color: var(--accent); border: 1px solid rgba(200,240,96,.2); }
+  .tag-pending { background: rgba(240,200,60,.1); color: #f0c83c; border: 1px solid rgba(240,200,60,.2); }
+
+  .empty-list {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 12px;
+    color: var(--text3); font-size: 13px; padding: 40px;
+  }
+  .empty-list svg { opacity: .2; }
+
+  /* ── DETAIL SCREEN ── */
+  .detail-scroll { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+  .detail-header-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+  }
+  .detail-num { font-size: 28px; font-weight: 800; font-family: var(--font-mono); letter-spacing: -.02em; }
+  .detail-meta { font-size: 13px; color: var(--text2); margin-top: 4px; }
+  .detail-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 100px; padding: 5px 12px; font-size: 11px;
+    font-weight: 600; color: var(--text2); margin-top: 10px;
+  }
+
+  .info-block {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+  }
+  .info-block-title {
+    padding: 12px 16px; background: var(--surface2);
+    font-size: 10px; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--text3);
+    border-bottom: 1px solid var(--border);
+  }
+  .info-row {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 12px 16px; border-bottom: 1px solid var(--border); gap: 12px;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-key { font-size: 12px; color: var(--text3); font-family: var(--font-mono); flex-shrink: 0; }
+  .info-val { font-size: 13px; color: var(--text); font-family: var(--font-mono); text-align: right; }
+
+  .preview-thumb {
+    width: 100%; border-radius: var(--radius); overflow: hidden;
+    background: #000; max-height: 200px; display: flex; align-items: center; justify-content: center;
+  }
+  .preview-thumb img { width: 100%; object-fit: cover; max-height: 200px; }
+
+  .detail-actions { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--border); background: var(--bg); }
+  .btn-export {
+    background: var(--accent2); color: #0a0a0a;
+    border: none; border-radius: var(--radius);
+    padding: 16px; font-family: var(--font-display);
+    font-size: 15px; font-weight: 700; cursor: pointer; width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform .15s;
+  }
+  .btn-export:active { transform: scale(.98); }
+
+  .btn-danger {
+    background: transparent; color: var(--danger);
+    border: 1px solid rgba(240,96,96,.3); border-radius: var(--radius);
+    padding: 14px; font-family: var(--font-display);
+    font-size: 14px; font-weight: 600; cursor: pointer; width: 100%;
+  }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px 20px;
+    font-size: 13px; font-weight: 600; white-space: nowrap;
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+    opacity: 0; z-index: 999;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  #toast.success { border-color: rgba(200,240,96,.4); color: var(--accent); }
+  #toast.error { border-color: rgba(240,96,96,.4); color: var(--danger); }
+
+  /* ── FAB ── */
+  .fab {
+    position: fixed; bottom: 24px; right: 20px;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--accent); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 24px rgba(200,240,96,.3);
+    transition: transform .15s, box-shadow .15s; z-index: 50;
+    font-size: 24px;
+  }
+  .fab:active { transform: scale(.93); box-shadow: 0 2px 12px rgba(200,240,96,.2); }
+
+  /* ── ERROR ── */
+  .error-card {
+    background: rgba(240,96,96,.08); border: 1px solid rgba(240,96,96,.25);
+    border-radius: var(--radius); padding: 16px 18px;
+    font-size: 13px; color: var(--danger); line-height: 1.5;
+    display: none;
+  }
+  .error-card.show { display: block; }
+
+  /* ── MISC ── */
+  input[type="file"] { display: none; }
+  .divider { height: 1px; background: var(--border); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ SCREEN: HOME ══════════════ -->
+<div class="screen active" id="screen-home">
+  <div class="topbar">
+    <span class="topbar-logo">RemitApp</span>
+    <button class="icon-btn" onclick="goTo('screen-list')">☰</button>
+  </div>
+  <div class="home-hero">
+    <div class="hero-badge">Campo Simple · Logística</div>
+    <h1 class="hero-title">Escaneá<br>el <span>remito</span><br>firmado.</h1>
+    <p class="hero-sub">Fotografiá el remito, extraemos los datos automáticamente y generamos el archivo para Rojosoft.</p>
+
+    <div class="stats-row" id="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-total">0</div>
+        <div class="stat-label">Remitos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-exported">0</div>
+        <div class="stat-label">Exportados</div>
+      </div>
+    </div>
+
+    <button class="capture-btn" onclick="triggerCamera()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+      Fotografiar Remito
+    </button>
+    <button class="secondary-btn" onclick="triggerGallery()">
+      📁 Elegir desde galería
+    </button>
+  </div>
+  <input type="file" id="camera-input" accept="image/*" capture="environment" onchange="handleImageSelected(this)">
+  <input type="file" id="gallery-input" accept="image/*" onchange="handleImageSelected(this)">
+</div>
+
+<!-- ══════════════ SCREEN: PREVIEW ══════════════ -->
+<div class="screen" id="screen-preview">
+  <div class="topbar">
+    <button class="icon-btn" onclick="goTo('screen-home')">←</button>
+    <span class="topbar-title">Revisar foto</span>
+    <div style="width:40px"></div>
+  </div>
+  <div id="preview-container">
+    <div class="preview-placeholder" id="preview-placeholder">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+      Sin imagen
+    </div>
+    <img id="preview-img" alt="Remito">
+  </div>
+  <div class="preview-actions">
+    <div class="error-card" id="preview-error"></div>
+    <button class="btn-primary" id="btn-analyze" onclick="analyzeImage()">
+      ✨ Analizar con IA
+    </button>
+    <button class="btn-secondary" onclick="triggerCamera()">
+      📷 Tomar otra foto
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════ SCREEN: PROCESSING ══════════════ -->
+<div class="screen" id="screen-processing">
+  <div class="processing-screen">
+    <div class="spinner-ring"></div>
+    <h2 class="processing-title">Analizando remito…</h2>
+    <p class="processing-sub">Claude está leyendo el documento y extrayendo todos los campos.</p>
+    <div class="processing-steps">
+      <div class="step-item active" id="step-1">
+        <div class="step-dot"></div> Reconociendo texto e imagen
+      </div>
+      <div class="step-item" id="step-2">
+        <div class="step-dot"></div> Extrayendo campos del remito
+      </div>
+      <div class="step-item" id="step-3">
+        <div class="step-dot"></div> Generando estructura de datos
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SCREEN: REVIEW / FORM ══════════════ -->
+<div class="screen" id="screen-review">
+  <div class="topbar">
+    <button class="icon-btn" onclick="goTo('screen-home')">←</button>
+    <span class="topbar-title">Revisar datos</span>
+    <div style="width:40px"></div>
+  </div>
+
+  <div class="form-scroll">
+    <div>
+      <div class="form-section-title">📄 Datos del Remito</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">N° Remito</label>
+            <input class="form-input highlight" id="f-numero" type="text" placeholder="000-00000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fecha</label>
+            <input class="form-input" id="f-fecha" type="text" placeholder="DD/MM/AAAA">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="form-section-title">🏭 Remitente</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+        <div class="form-group">
+          <label class="form-label">Razón Social</label>
+          <input class="form-input" id="f-rem-razon" type="text" placeholder="Empresa S.A.">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">CUIT</label>
+            <input class="form-input" id="f-rem-cuit" type="text" placeholder="20-00000000-0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Localidad</label>
+            <input class="form-input" id="f-rem-loc" type="text" placeholder="Rosario">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="form-section-title">📍 Destinatario</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+        <div class="form-group">
+          <label class="form-label">Razón Social</label>
+          <input class="form-input" id="f-dest-razon" type="text" placeholder="Campo Simple S.A.">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">CUIT</label>
+            <input class="form-input" id="f-dest-cuit" type="text" placeholder="20-00000000-0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Localidad</label>
+            <input class="form-input" id="f-dest-loc" type="text" placeholder="Venado Tuerto">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="form-section-title">🚛 Transporte</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+        <div class="form-group">
+          <label class="form-label">Transportista</label>
+          <input class="form-input" id="f-trans-nombre" type="text" placeholder="Nombre del transportista">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Patente Camión</label>
+            <input class="form-input" id="f-patente-cam" type="text" placeholder="AB 123 CD">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Patente Acoplado</label>
+            <input class="form-input" id="f-patente-acop" type="text" placeholder="AB 123 CD">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="form-section-title">📦 Ítems</div>
+      <div class="items-table" id="items-table" style="margin-top:8px;">
+        <div class="items-header">
+          <span>Descripción</span><span>Cant.</span><span>Unidad</span>
+        </div>
+        <div id="items-body"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="form-section-title">💬 Observaciones</div>
+      <div style="margin-top:8px;">
+        <textarea class="form-input" id="f-obs" rows="3" placeholder="Observaciones del remito…" style="resize:none;line-height:1.5;"></textarea>
+      </div>
+    </div>
+
+    <div style="height:100px"></div>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn-primary" onclick="saveRemito()">
+      💾 Guardar Remito
+    </button>
+    <button class="btn-secondary" onclick="goTo('screen-home')">
+      Cancelar
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════ SCREEN: LIST ══════════════ -->
+<div class="screen" id="screen-list">
+  <div class="topbar">
+    <button class="icon-btn" onclick="goTo('screen-home')">←</button>
+    <span class="topbar-title">Remitos guardados</span>
+    <div style="width:40px"></div>
+  </div>
+  <div class="list-header">
+    <h2 class="list-title">Historial</h2>
+  </div>
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search-input" placeholder="Buscar por N°, empresa, patente…" oninput="filterList()">
+  </div>
+  <div class="remito-list" id="remito-list">
+    <div class="empty-list" id="empty-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      <span>No hay remitos guardados todavía</span>
+    </div>
+  </div>
+  <button class="fab" onclick="goTo('screen-home')" title="Nuevo remito">📷</button>
+</div>
+
+<!-- ══════════════ SCREEN: DETAIL ══════════════ -->
+<div class="screen" id="screen-detail">
+  <div class="topbar">
+    <button class="icon-btn" onclick="goTo('screen-list')">←</button>
+    <span class="topbar-title">Detalle</span>
+    <button class="icon-btn" id="detail-menu-btn" onclick="toggleDetailMenu()">⋯</button>
+  </div>
+  <div class="detail-scroll" id="detail-content"></div>
+  <div class="detail-actions">
+    <button class="btn-export" onclick="exportCurrentRemito()">
+      ⬇ Exportar para Rojosoft
+    </button>
+    <button class="btn-danger" onclick="deleteCurrentRemito()">
+      Eliminar remito
+    </button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let currentImageBase64 = null;
+let currentImageMime = 'image/jpeg';
+let currentRemito = null;
+let currentDetailId = null;
+let allRemitos = [];
+
+// ══════════════════════════════════════════════
+// STORAGE
+// ══════════════════════════════════════════════
+const STORAGE_KEY = 'remitapp_remitos_v1';
+
+function loadRemitos() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    allRemitos = raw ? JSON.parse(raw) : [];
+  } catch(e) { allRemitos = []; }
+}
+
+function saveRemitos() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(allRemitos));
+}
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+function goTo(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+  if (screenId === 'screen-list') renderList();
+  if (screenId === 'screen-home') updateStats();
+  window.scrollTo(0,0);
+}
+
+// ══════════════════════════════════════════════
+// CAMERA / IMAGE
+// ══════════════════════════════════════════════
+function triggerCamera() {
+  document.getElementById('camera-input').value = '';
+  document.getElementById('camera-input').click();
+}
+function triggerGallery() {
+  document.getElementById('gallery-input').value = '';
+  document.getElementById('gallery-input').click();
+}
+
+function handleImageSelected(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const result = e.target.result;
+    const base64 = result.split(',')[1];
+    currentImageBase64 = base64;
+    currentImageMime = file.type || 'image/jpeg';
+
+    const img = document.getElementById('preview-img');
+    img.src = result;
+    img.style.display = 'block';
+    document.getElementById('preview-placeholder').style.display = 'none';
+    document.getElementById('preview-error').classList.remove('show');
+    goTo('screen-preview');
+  };
+  reader.readAsDataURL(file);
+}
+
+// ══════════════════════════════════════════════
+// ANALYSIS WITH CLAUDE API
+// ══════════════════════════════════════════════
+async function analyzeImage() {
+  if (!currentImageBase64) return;
+  goTo('screen-processing');
+  animateSteps();
+
+  const SYSTEM = `Sos un sistema de extracción de datos de remitos argentinos. 
+Analizá la imagen y devolvé ÚNICAMENTE un objeto JSON válido con esta estructura exacta (sin texto adicional, sin markdown, sin backticks):
+{
+  "numero": "número del remito o null",
+  "fecha": "DD/MM/AAAA o null",
+  "remitente": {
+    "razon_social": "string o null",
+    "cuit": "string o null",
+    "domicilio": "string o null",
+    "localidad": "string o null"
+  },
+  "destinatario": {
+    "razon_social": "string o null",
+    "cuit": "string o null",
+    "domicilio": "string o null",
+    "localidad": "string o null"
+  },
+  "transporte": {
+    "nombre": "string o null",
+    "patente_camion": "string o null",
+    "patente_acoplado": "string o null"
+  },
+  "items": [
+    {
+      "descripcion": "string",
+      "cantidad": "number o string",
+      "unidad": "string o null"
+    }
+  ],
+  "observaciones": "string o null",
+  "confianza": "alta | media | baja"
+}
+Si el campo no es legible o no está en el documento, usar null. No inventar datos.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: currentImageMime,
+                data: currentImageBase64
+              }
+            },
+            { type: 'text', text: 'Extraé todos los datos de este remito.' }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error?.message || 'Error en la API');
+    }
+
+    const raw = data.content?.find(b => b.type === 'text')?.text || '';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    currentRemito = { ...parsed, _imageBase64: currentImageBase64, _imageMime: currentImageMime };
+    populateForm(parsed);
+    goTo('screen-review');
+
+  } catch(err) {
+    console.error(err);
+    goTo('screen-preview');
+    const errEl = document.getElementById('preview-error');
+    errEl.textContent = `Error al analizar: ${err.message}. Verificá la imagen y volvé a intentar.`;
+    errEl.classList.add('show');
+  }
+}
+
+function animateSteps() {
+  const steps = ['step-1','step-2','step-3'];
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i > 0) document.getElementById(steps[i-1])?.classList.replace('active','done');
+    if (i < steps.length) document.getElementById(steps[i])?.classList.add('active');
+    i++;
+    if (i > steps.length) clearInterval(interval);
+  }, 900);
+}
+
+// ══════════════════════════════════════════════
+// FORM
+// ══════════════════════════════════════════════
+function populateForm(data) {
+  document.getElementById('f-numero').value = data.numero || '';
+  document.getElementById('f-fecha').value = data.fecha || '';
+  document.getElementById('f-rem-razon').value = data.remitente?.razon_social || '';
+  document.getElementById('f-rem-cuit').value = data.remitente?.cuit || '';
+  document.getElementById('f-rem-loc').value = data.remitente?.localidad || '';
+  document.getElementById('f-dest-razon').value = data.destinatario?.razon_social || '';
+  document.getElementById('f-dest-cuit').value = data.destinatario?.cuit || '';
+  document.getElementById('f-dest-loc').value = data.destinatario?.localidad || '';
+  document.getElementById('f-trans-nombre').value = data.transporte?.nombre || '';
+  document.getElementById('f-patente-cam').value = data.transporte?.patente_camion || '';
+  document.getElementById('f-patente-acop').value = data.transporte?.patente_acoplado || '';
+  document.getElementById('f-obs').value = data.observaciones || '';
+
+  const body = document.getElementById('items-body');
+  body.innerHTML = '';
+  (data.items || []).forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = `<span>${item.descripcion || '-'}</span><span>${item.cantidad ?? '-'}</span><span>${item.unidad || '-'}</span>`;
+    body.appendChild(row);
+  });
+  if (!data.items?.length) {
+    body.innerHTML = `<div class="item-row"><span style="color:var(--text3)">Sin ítems detectados</span><span>-</span><span>-</span></div>`;
+  }
+}
+
+function readForm() {
+  return {
+    numero: document.getElementById('f-numero').value.trim(),
+    fecha: document.getElementById('f-fecha').value.trim(),
+    remitente: {
+      razon_social: document.getElementById('f-rem-razon').value.trim(),
+      cuit: document.getElementById('f-rem-cuit').value.trim(),
+      localidad: document.getElementById('f-rem-loc').value.trim(),
+    },
+    destinatario: {
+      razon_social: document.getElementById('f-dest-razon').value.trim(),
+      cuit: document.getElementById('f-dest-cuit').value.trim(),
+      localidad: document.getElementById('f-dest-loc').value.trim(),
+    },
+    transporte: {
+      nombre: document.getElementById('f-trans-nombre').value.trim(),
+      patente_camion: document.getElementById('f-patente-cam').value.trim(),
+      patente_acoplado: document.getElementById('f-patente-acop').value.trim(),
+    },
+    observaciones: document.getElementById('f-obs').value.trim(),
+    items: currentRemito?.items || [],
+    confianza: currentRemito?.confianza || 'media',
+  };
+}
+
+// ══════════════════════════════════════════════
+// SAVE
+// ══════════════════════════════════════════════
+function saveRemito() {
+  const data = readForm();
+  if (!data.numero && !data.remitente.razon_social) {
+    showToast('Completá al menos el N° de remito o el remitente', 'error');
+    return;
+  }
+
+  const record = {
+    id: Date.now().toString(),
+    ...data,
+    _imageBase64: currentRemito?._imageBase64 || null,
+    _imageMime: currentRemito?._imageMime || null,
+    _savedAt: new Date().toISOString(),
+    _exported: false,
+  };
+
+  allRemitos.unshift(record);
+  saveRemitos();
+  updateStats();
+  showToast('✅ Remito guardado correctamente', 'success');
+  setTimeout(() => goTo('screen-list'), 800);
+}
+
+// ══════════════════════════════════════════════
+// LIST
+// ══════════════════════════════════════════════
+function renderList(filter = '') {
+  const list = document.getElementById('remito-list');
+  const empty = document.getElementById('empty-state');
+  const filtered = filter
+    ? allRemitos.filter(r =>
+        (r.numero||'').toLowerCase().includes(filter) ||
+        (r.remitente?.razon_social||'').toLowerCase().includes(filter) ||
+        (r.destinatario?.razon_social||'').toLowerCase().includes(filter) ||
+        (r.transporte?.patente_camion||'').toLowerCase().includes(filter) ||
+        (r.transporte?.nombre||'').toLowerCase().includes(filter)
+      )
+    : allRemitos;
+
+  // remove cards but keep empty state
+  list.querySelectorAll('.remito-card').forEach(el => el.remove());
+
+  if (!filtered.length) {
+    empty.style.display = 'flex';
+    return;
+  }
+  empty.style.display = 'none';
+
+  filtered.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'remito-card';
+    card.innerHTML = `
+      <div class="remito-card-top">
+        <div class="remito-num">N° ${r.numero || 'Sin número'}</div>
+        <div class="remito-date">${r.fecha || formatDate(r._savedAt)}</div>
+      </div>
+      <div class="remito-empresa">${r.remitente?.razon_social || 'Sin remitente'} → ${r.destinatario?.razon_social || 'Sin destinatario'}</div>
+      <div class="remito-tags">
+        ${r.transporte?.patente_camion ? `<span class="tag" style="background:rgba(255,255,255,.05);color:var(--text2);border:1px solid var(--border);">${r.transporte.patente_camion}</span>` : ''}
+        ${r._exported ? '<span class="tag tag-exported">Exportado</span>' : '<span class="tag tag-pending">Pendiente</span>'}
+      </div>
+    `;
+    card.onclick = () => openDetail(r.id);
+    list.appendChild(card);
+  });
+}
+
+function filterList() {
+  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  renderList(q);
+}
+
+// ══════════════════════════════════════════════
+// DETAIL
+// ══════════════════════════════════════════════
+function openDetail(id) {
+  const r = allRemitos.find(x => x.id === id);
+  if (!r) return;
+  currentDetailId = id;
+
+  const content = document.getElementById('detail-content');
+  content.innerHTML = `
+    ${r._imageBase64 ? `<div class="preview-thumb"><img src="data:${r._imageMime};base64,${r._imageBase64}" alt="Remito"></div>` : ''}
+    <div class="detail-header-card">
+      <div class="detail-num">N° ${r.numero || 'Sin número'}</div>
+      <div class="detail-meta">${r.fecha || ''} · Guardado ${formatDate(r._savedAt)}</div>
+      <div class="detail-chip">${r._exported ? '✅ Exportado a Rojosoft' : '⏳ Pendiente de exportar'}</div>
+    </div>
+
+    <div class="info-block">
+      <div class="info-block-title">Remitente</div>
+      <div class="info-row"><span class="info-key">Razón Social</span><span class="info-val">${r.remitente?.razon_social || '-'}</span></div>
+      <div class="info-row"><span class="info-key">CUIT</span><span class="info-val">${r.remitente?.cuit || '-'}</span></div>
+      <div class="info-row"><span class="info-key">Localidad</span><span class="info-val">${r.remitente?.localidad || '-'}</span></div>
+    </div>
+
+    <div class="info-block">
+      <div class="info-block-title">Destinatario</div>
+      <div class="info-row"><span class="info-key">Razón Social</span><span class="info-val">${r.destinatario?.razon_social || '-'}</span></div>
+      <div class="info-row"><span class="info-key">CUIT</span><span class="info-val">${r.destinatario?.cuit || '-'}</span></div>
+      <div class="info-row"><span class="info-key">Localidad</span><span class="info-val">${r.destinatario?.localidad || '-'}</span></div>
+    </div>
+
+    <div class="info-block">
+      <div class="info-block-title">Transporte</div>
+      <div class="info-row"><span class="info-key">Transportista</span><span class="info-val">${r.transporte?.nombre || '-'}</span></div>
+      <div class="info-row"><span class="info-key">Camión</span><span class="info-val">${r.transporte?.patente_camion || '-'}</span></div>
+      <div class="info-row"><span class="info-key">Acoplado</span><span class="info-val">${r.transporte?.patente_acoplado || '-'}</span></div>
+    </div>
+
+    ${r.items?.length ? `
+    <div class="info-block">
+      <div class="info-block-title">Ítems (${r.items.length})</div>
+      ${r.items.map(it => `
+        <div class="info-row">
+          <span class="info-key">${it.descripcion}</span>
+          <span class="info-val">${it.cantidad} ${it.unidad || ''}</span>
+        </div>
+      `).join('')}
+    </div>` : ''}
+
+    ${r.observaciones ? `
+    <div class="info-block">
+      <div class="info-block-title">Observaciones</div>
+      <div class="info-row"><span class="info-val" style="text-align:left">${r.observaciones}</span></div>
+    </div>` : ''}
+
+    <div style="height:80px"></div>
+  `;
+
+  goTo('screen-detail');
+}
+
+// ══════════════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════════════
+function exportCurrentRemito() {
+  const r = allRemitos.find(x => x.id === currentDetailId);
+  if (!r) return;
+
+  // CSV genérico — cuando tengas el formato Rojosoft, se ajusta acá
+  const lines = [];
+  lines.push('TIPO;CAMPO;VALOR');
+  lines.push(`CAB;NUMERO;${r.numero || ''}`);
+  lines.push(`CAB;FECHA;${r.fecha || ''}`);
+  lines.push(`REM;RAZON_SOCIAL;${r.remitente?.razon_social || ''}`);
+  lines.push(`REM;CUIT;${r.remitente?.cuit || ''}`);
+  lines.push(`REM;LOCALIDAD;${r.remitente?.localidad || ''}`);
+  lines.push(`DEST;RAZON_SOCIAL;${r.destinatario?.razon_social || ''}`);
+  lines.push(`DEST;CUIT;${r.destinatario?.cuit || ''}`);
+  lines.push(`DEST;LOCALIDAD;${r.destinatario?.localidad || ''}`);
+  lines.push(`TRANS;NOMBRE;${r.transporte?.nombre || ''}`);
+  lines.push(`TRANS;PATENTE_CAMION;${r.transporte?.patente_camion || ''}`);
+  lines.push(`TRANS;PATENTE_ACOPLADO;${r.transporte?.patente_acoplado || ''}`);
+  (r.items || []).forEach((it, i) => {
+    lines.push(`ITEM${i+1};DESCRIPCION;${it.descripcion || ''}`);
+    lines.push(`ITEM${i+1};CANTIDAD;${it.cantidad || ''}`);
+    lines.push(`ITEM${i+1};UNIDAD;${it.unidad || ''}`);
+  });
+  if (r.observaciones) lines.push(`OBS;TEXTO;${r.observaciones}`);
+
+  const csv = lines.join('\n');
+  const blob = new Blob([csv], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `remito_${r.numero || r.id}_rojosoft.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  // mark as exported
+  r._exported = true;
+  saveRemitos();
+  showToast('📤 Archivo exportado', 'success');
+
+  // refresh detail chip
+  const chip = document.querySelector('.detail-chip');
+  if (chip) chip.innerHTML = '✅ Exportado a Rojosoft';
+}
+
+function deleteCurrentRemito() {
+  if (!confirm('¿Eliminar este remito? Esta acción no se puede deshacer.')) return;
+  allRemitos = allRemitos.filter(x => x.id !== currentDetailId);
+  saveRemitos();
+  showToast('Remito eliminado', 'error');
+  goTo('screen-list');
+}
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+function updateStats() {
+  document.getElementById('stat-total').textContent = allRemitos.length;
+  document.getElementById('stat-exported').textContent = allRemitos.filter(r => r._exported).length;
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'2-digit' });
+  } catch { return ''; }
+}
+
+let toastTimer;
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = ''; }, 2800);
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+loadRemitos();
+updateStats();
+</script>
+</body>
+</html>

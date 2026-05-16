@@ -395,19 +395,19 @@
       </div>
     </div>
 
-    <button class="capture-btn" onclick="triggerCamera()">
+    <label class="capture-btn" for="camera-input">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
         <circle cx="12" cy="13" r="4"/>
       </svg>
       Fotografiar Remito
-    </button>
-    <button class="secondary-btn" onclick="triggerGallery()">
+    </label>
+    <label class="secondary-btn" for="gallery-input">
       📁 Elegir desde galería
-    </button>
+    </label>
   </div>
-  <input type="file" id="camera-input" accept="image/*" capture="environment" onchange="handleImageSelected(this)">
-  <input type="file" id="gallery-input" accept="image/*" onchange="handleImageSelected(this)">
+  <input type="file" id="camera-input" accept="image/*" capture="environment" onchange="handleImageSelected(this)" style="display:none">
+  <input type="file" id="gallery-input" accept="image/*" onchange="handleImageSelected(this)" style="display:none">
 </div>
 
 <!-- ══════════════ SCREEN: PREVIEW ══════════════ -->
@@ -432,9 +432,9 @@
     <button class="btn-primary" id="btn-analyze" onclick="analyzeImage()">
       ✨ Analizar con IA
     </button>
-    <button class="btn-secondary" onclick="triggerCamera()">
+    <label class="btn-secondary" for="camera-input" style="cursor:pointer;text-align:center;">
       📷 Tomar otra foto
-    </button>
+    </label>
   </div>
 </div>
 

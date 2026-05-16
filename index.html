@@ -367,7 +367,10 @@
   .error-card.show { display: block; }
 
   /* ── MISC ── */
-  input[type="file"] { display: none; }
+  .file-input-hidden {
+    position: fixed; top: -9999px; left: -9999px;
+    width: 1px; height: 1px; opacity: 0; pointer-events: none;
+  }
   .divider { height: 1px; background: var(--border); }
 </style>
 </head>
@@ -406,8 +409,8 @@
       📁 Elegir desde galería
     </label>
   </div>
-  <input type="file" id="camera-input" accept="image/*" capture="environment" onchange="handleImageSelected(this)" style="display:none">
-  <input type="file" id="gallery-input" accept="image/*" onchange="handleImageSelected(this)" style="display:none">
+
+
 </div>
 
 <!-- ══════════════ SCREEN: PREVIEW ══════════════ -->
@@ -1065,5 +1068,21 @@ function showToast(msg, type = 'success') {
 loadRemitos();
 updateStats();
 </script>
+
+<!-- ══ INPUTS GLOBALES — fuera de cualquier pantalla, siempre en el DOM ══ -->
+<input 
+  type="file" 
+  id="camera-input" 
+  accept="image/*" 
+  capture="environment" 
+  onchange="handleImageSelected(this)"
+  style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;">
+<input 
+  type="file" 
+  id="gallery-input" 
+  accept="image/*" 
+  onchange="handleImageSelected(this)"
+  style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;">
+
 </body>
 </html>

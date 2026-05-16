@@ -3,57 +3,96 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Test Cámara</title>
+<title>Test Cámara v2</title>
 <style>
-  body { font-family: sans-serif; padding: 30px; background: #111; color: #fff; }
-  h2 { margin-bottom: 24px; }
-  .btn { display: block; width: 100%; padding: 20px; margin-bottom: 16px; font-size: 18px; font-weight: bold; border-radius: 12px; border: none; cursor: pointer; }
-  .btn1 { background: #c8f060; color: #000; }
-  .btn2 { background: #60f0a8; color: #000; }
-  .btn3 { background: #6090f0; color: #fff; }
-  label.btn { display: block; text-align: center; }
-  label.btn input { display: none; }
-  img { width: 100%; border-radius: 10px; margin-top: 20px; display: none; }
-  #log { margin-top: 20px; background: #222; padding: 14px; border-radius: 10px; font-size: 13px; color: #aaa; white-space: pre-wrap; }
+  body { font-family: sans-serif; padding: 24px; background: #111; color: #fff; }
+  h2 { margin-bottom: 20px; }
+  .btn { display: block; width: 100%; padding: 20px; margin-bottom: 14px; font-size: 17px; font-weight: bold; border-radius: 12px; border: none; cursor: pointer; text-align: center; }
+  .green { background: #c8f060; color: #000; }
+  .teal  { background: #60f0a8; color: #000; }
+  .blue  { background: #6090f0; color: #fff; }
+  .gray  { background: #333; color: #fff; }
+  img#preview { width: 100%; border-radius: 10px; margin-top: 16px; display: none; }
+  #log { margin-top: 16px; background: #1a1a1a; border: 1px solid #333; padding: 14px; border-radius: 10px; font-size: 12px; color: #aaa; white-space: pre-wrap; min-height: 80px; }
+  video { width: 100%; border-radius: 10px; display: none; margin-top: 12px; }
 </style>
 </head>
 <body>
-<h2>🧪 Test de Cámara</h2>
+<h2>Test Cámara v2 — Poco X6</h2>
 
-<p style="color:#aaa;margin-bottom:20px;font-size:14px;">Tocá cada botón y decí cuál funciona:</p>
+<p style="color:#666;font-size:12px;margin-bottom:6px;">A) Input file visible, sin capture:</p>
+<input type="file" accept="image/*" class="btn gray" onchange="gotFile(this,'A')">
 
-<!-- TEST 1: label con input adentro, con capture -->
-<label class="btn btn1">
-  📷 TEST 1 — Cámara (capture)
-  <input type="file" accept="image/*" capture="environment" onchange="onImg(this,'TEST1 capture=environment')">
+<p style="color:#666;font-size:12px;margin-bottom:6px;">B) Label+input, sin capture:</p>
+<label class="btn teal">
+  Tocar acá (sin capture)
+  <input type="file" accept="image/*" style="display:none" onchange="gotFile(this,'B')">
 </label>
 
-<!-- TEST 2: label con input adentro, SIN capture -->
-<label class="btn btn2">
-  🖼 TEST 2 — Archivo/Galería (sin capture)
-  <input type="file" accept="image/*" onchange="onImg(this,'TEST2 sin capture')">
-</label>
+<p style="color:#666;font-size:12px;margin-bottom:6px;">C) Pedir permiso cámara primero, luego abrir:</p>
+<button class="btn green" onclick="methodC()">Pedir permiso + abrir archivo</button>
+<input type="file" accept="image/*" capture="environment" id="inputC" style="display:none" onchange="gotFile(this,'C')">
 
-<!-- TEST 3: input visible directo -->
-<p style="color:#aaa;font-size:13px;margin-bottom:8px;">TEST 3 — Input visible directo:</p>
-<input class="btn btn3" type="file" accept="image/*" onchange="onImg(this,'TEST3 input visible')">
+<p style="color:#666;font-size:12px;margin-bottom:6px;">D) getUserMedia directo (cámara en vivo):</p>
+<button class="btn blue" onclick="methodD()">Abrir cámara en vivo</button>
+<video id="video" autoplay playsinline></video>
+<button class="btn gray" id="snapBtn" style="display:none" onclick="snap()">Tomar foto</button>
+<canvas id="canvas" style="display:none"></canvas>
 
 <img id="preview">
-<div id="log">Esperando tap…</div>
+<div id="log">Esperando...
+</div>
 
 <script>
-function onImg(input, label) {
-  log('✅ ' + label + ' — archivo seleccionado: ' + (input.files[0]?.name || 'ninguno'));
-  if (input.files[0]) {
+const logEl = document.getElementById('log');
+function log(msg) { logEl.textContent += msg + '\n'; console.log(msg); }
+log('mediaDevices disponible: ' + (!!navigator.mediaDevices));
+
+function gotFile(input, method) {
+  const f = input.files && input.files[0];
+  log('METODO ' + method + ' funcionó: ' + (f ? f.name : 'sin archivo'));
+  if (f) {
     const r = new FileReader();
-    r.onload = e => { const img = document.getElementById('preview'); img.src = e.target.result; img.style.display='block'; };
-    r.readAsDataURL(input.files[0]);
+    r.onload = e => { const img = document.getElementById('preview'); img.src = e.target.result; img.style.display = 'block'; };
+    r.readAsDataURL(f);
   }
 }
-function log(msg) {
-  document.getElementById('log').textContent += '\n' + msg;
+
+async function methodC() {
+  log('C: pidiendo permiso getUserMedia...');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    stream.getTracks().forEach(t => t.stop());
+    log('Permiso OK, abriendo input...');
+  } catch(e) {
+    log('getUserMedia error: ' + e.message);
+  }
+  document.getElementById('inputC').click();
 }
-log('Página cargada — ' + navigator.userAgent);
+
+let activeStream = null;
+async function methodD() {
+  log('D: abriendo camara en vivo...');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    activeStream = stream;
+    const v = document.getElementById('video');
+    v.srcObject = stream; v.style.display = 'block';
+    document.getElementById('snapBtn').style.display = 'block';
+    log('Stream OK');
+  } catch(e) { log('D error: ' + e.message); }
+}
+
+function snap() {
+  const v = document.getElementById('video'), c = document.getElementById('canvas');
+  c.width = v.videoWidth; c.height = v.videoHeight;
+  c.getContext('2d').drawImage(v,0,0);
+  const img = document.getElementById('preview');
+  img.src = c.toDataURL('image/jpeg'); img.style.display = 'block';
+  if (activeStream) activeStream.getTracks().forEach(t => t.stop());
+  v.style.display = 'none'; document.getElementById('snapBtn').style.display = 'none';
+  log('Foto capturada con metodo D');
+}
 </script>
 </body>
 </html>
